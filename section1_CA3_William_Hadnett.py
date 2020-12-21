@@ -357,14 +357,59 @@ print(avgSpend)
 # Female visitors clearly spent more than male visitors on this website. Females
 # spend a total of 643346.28 while males only spend a total of 283904.09. 
 
+# =============================================================================
+# Customer Analysis - Total Spend by Age
+# ============================================================================= 
 
+# Total spend under 40s
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
+group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+totalSpend = list(shopcol.aggregate([match,unwind,group]))
+print(totalSpend)
+# 'totalSpend': 809837.76
 
+# Find the average spend under 40
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
+group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+avgSpend = list(shopcol.aggregate([match,unwind,group]))
+print(avgSpend)
+# 'avgSpend': 23.882678934796072
 
+# Total spend between 40 and 60 inclusive
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
+group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+totalSpend = list(shopcol.aggregate([match,unwind,group]))
+print(totalSpend)
+# 'totalSpend': 94601.73
 
+# Find the average spend between 40 and 60 inclusive
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
+group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+avgSpend = list(shopcol.aggregate([match,unwind,group]))
+print(avgSpend)
+# 'avgSpend': 18.52030736100235
 
+# Total spend over 60
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
+group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+totalSpend = list(shopcol.aggregate([match,unwind,group]))
+print(totalSpend)
+# 'totalSpend': 22810.88
 
+# Find the average spend over 60
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
+group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+avgSpend = list(shopcol.aggregate([match,unwind,group]))
+print(avgSpend)
+# 'avgSpend': 16.93458054936897
 
-
-
+# The age group that spent the most while visiting this website appears to be 
+# the under 40s with a total spend of 809837.76 and an average spend of 23.88.  
 
 
