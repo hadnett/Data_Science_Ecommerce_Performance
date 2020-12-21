@@ -299,11 +299,13 @@ totalValue = list(shopcol.aggregate([match,unwind,group]))
 print(totalValue)
 # 'TotalValue': 4328.44
 
+# Find total number of documents for visitors less than 40 years old.
 query = { 'Customer.Age': {'$lt': 40} }
 result = shopcol.count_documents(query)
 print(result)
 # Total Document under 40: 1670
 
+# Find total number of documents for visitors more than 60 years old.
 query = { 'Customer.Age': {'$gt': 60} }
 result = shopcol.count_documents(query)
 print(result)
@@ -316,13 +318,44 @@ print(result)
 # The average for the under 40s is also more precise due to the 'Law of Large 
 # Numbers'. 
 
+# =============================================================================
+# Customer Analysis - Total Spend by Gender
+# ============================================================================= 
 
+# Find the total spend of female visitors.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Female'}}
+group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+totalSpend = list(shopcol.aggregate([match,unwind,group]))
+print(totalSpend)
+# 'totalSpend': 643346.28
 
+# Find the average female spend.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Female'}}
+group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+avgSpend = list(shopcol.aggregate([match,unwind,group]))
+print(avgSpend)
+# 'avgSpend': 23.05404859170071
 
+# Find the total spend of male visitors.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Male'}}
+group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+totalSpend = list(shopcol.aggregate([match,unwind,group]))
+print(totalSpend)
+# 'totalSpend': 283904.09
 
+# Find the average female spend.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Male'}}
+group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+avgSpend = list(shopcol.aggregate([match,unwind,group]))
+print(avgSpend)
+# 'avgSpend': 22.7888978969337
 
-
-
+# Female visitors clearly spent more than male visitors on this website. Females
+# spend a total of 643346.28 while males only spend a total of 283904.09. 
 
 
 
