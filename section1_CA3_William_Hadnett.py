@@ -412,4 +412,28 @@ print(avgSpend)
 # The age group that spent the most while visiting this website appears to be 
 # the under 40s with a total spend of 809837.76 and an average spend of 23.88.  
 
+# =============================================================================
+# Customer Analysis - Summary
+# ============================================================================= 
+
+'''
+The information above is all extremely useful and tells us a lot about the 
+total spend and value by gender and age. However, what may be more useful to a 
+business such as the one hosting this website is the customer profile and 
+demographic that the above analysis identifies and builds. Through the above analysis 
+I could now inform this business that their target audience is females aged 20 to 40
+and that over three months this demographic is likely to spend up to 80k via their 
+website. This business can then create a strategy based of this information to target 
+this demographic. Alternatively a strategy could be created to increase catchment
+of males under 40 or both males and females over 40 etc. However, that is a business
+decision based on the direction of the company. 
+'''
+
+
+
+
+
+
+
+
 
