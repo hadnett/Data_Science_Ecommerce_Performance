@@ -122,6 +122,7 @@ totalItems = list(shopcol.aggregate([unwind,group]))
 print(totalItems)
 # [{'_id': None, 'total': 513464}]
 
+# Total items purchased by Females.
 unwind = {'$unwind':'$Basket'}
 match = {'$match':{'Customer.Gender': 'Female' }}
 group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
@@ -129,6 +130,7 @@ totalItemsFemale = list(shopcol.aggregate([match,unwind,group]))
 print(totalItemsFemale)
 # [{'_id': None, 'total': 360283}]
 
+# Total items purchased by Males.
 unwind = {'$unwind':'$Basket'}
 match = {'$match':{'Customer.Gender': 'Male' }}
 group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
@@ -138,12 +140,41 @@ print(totalItemsMale)
 
 # The above Analysis shows the total number of items bought by gender. It is 
 # clear that Females bought more items than Males (over twice as much). Males
-# bought a total of 153181 items and females bought a total of 360283 items. 
+# bought a total of 153181 items and females bought a total of 360283 items.
+# Confirming that females appear to visit this website more and purchase a 
+# larger quantity of items. 
 
+# =============================================================================
+# Customer Analysis - Number of Items Purchased by Age
+# =============================================================================
 
+# Total Items purchased by visitors under 40 years of age.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
+group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
+totalItemsUnder40 = list(shopcol.aggregate([match,unwind,group]))
+print(totalItemsUnder40)
+# [{'_id': None, 'total': 447076}]
 
+# Total Items purchased by visitors between 40 and 60 years of age (inclusive).
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
+group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
+totalItems40To60 = list(shopcol.aggregate([match,unwind,group]))
+print(totalItems40To60)
+# [{'_id': None, 'total': 52369}]
 
+# Total Items purchased by visitors over 60.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
+group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
+totalItemsOver60 = list(shopcol.aggregate([match,unwind,group]))
+print(totalItemsOver60)
+# [{'_id': None, 'total': 14019}]
 
-
+# Further Analysis of Number of Items bought by Age
+percentItemsOver40 = ((totalItems40To60[0]['total'] + totalItemsOver60[0]['total']) / totalItems[0]['total']) *100
+print(percentItemsOver40)
+# 12.9294361435271
 
 
