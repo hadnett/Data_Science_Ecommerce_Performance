@@ -185,6 +185,46 @@ print(percentItemsUnder40)
 # are primarily bought by visitors under the age of 40 as they account for 
 # 87.07% of the items purchased. 
 
+# =============================================================================
+# Customer Analysis - Value of Items Purchased by Gender
+# =============================================================================
+
+# Find the max value of an item in a customers basket.
+unwind = {'$unwind':'$Basket'}
+group={'$group': {'_id': '$status', 'MaxValue':{'$max':'$Basket.UnitPrice'}}}
+maxPrice = list(shopcol.aggregate([unwind,group]))
+print(maxPrice)
+# [{'_id': None, 'MaxPrice': 295}]
+
+# Find the min value of an item in a customers basket.
+unwind = {'$unwind':'$Basket'}
+group={'$group': {'_id': '$status', 'MinValue':{'$min':'$Basket.UnitPrice'}}}
+minPrice = list(shopcol.aggregate([unwind,group]))
+print(minPrice)
+# [{'_id': None, 'MinValue': 0.07}]
+
+# Large difference between the most expensive item and the cheapest item.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
