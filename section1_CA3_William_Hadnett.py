@@ -177,4 +177,15 @@ percentItemsOver40 = ((totalItems40To60[0]['total'] + totalItemsOver60[0]['total
 print(percentItemsOver40)
 # 12.9294361435271
 
+percentItemsUnder40 = (totalItemsUnder40[0]['total'] / totalItems[0]['total']) * 100
+print(percentItemsUnder40)
+# 87.07056385647289
+
+# Upon further analysis it is clear that the items bought from this website 
+# are primarily bought by visitors under the age of 40 as they account for 
+# 87.07% of the items purchased. 
+
+
+
+
 
