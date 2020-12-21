@@ -249,7 +249,33 @@ print(totalValue)
 # Customer Analysis - Value of Items Purchased by Age
 # =============================================================================
 
+# Find average value for visitors under 40 years of age.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
+group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
+avgPrice = list(shopcol.aggregate([match,unwind,group]))
+print(avgPrice)
+# 'AverageValue': 3.0566669615736237
 
+# Find the average value for visitors between 40 and 60 (inclusive).
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
+group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
+avgPrice = list(shopcol.aggregate([match,unwind,group]))
+print(avgPrice)
+# 'AverageValue': 3.0666014095536416
+
+# Find average value for visitors over 60 years of age.
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
+group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
+avgPrice = list(shopcol.aggregate([match,unwind,group]))
+print(avgPrice)
+# 'AverageValue': 3.2133927245731253
+
+# The average value is similiar across the three age ranges outlined. 
+# However, it can be noted that visitors over the age of 60 have a slightly higher
+# average value than visitors under 60.
 
 
 
