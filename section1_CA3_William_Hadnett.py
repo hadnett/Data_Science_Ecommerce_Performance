@@ -105,17 +105,40 @@ totalDocuments = shopcol.count_documents({})
 percent20To30 = (resultAgeGTE20LTE30/totalDocuments) * 100
 print(percent20To30)
 # percent20To30 = 63.6
+
 # It appears that the majority of the visits to this website are made by people
 # between the ages of 20 and 30 (inclusive). This age range accounts for 63.6 
-# percent of the traffic on the website. Therefore, it is important that the
-# website is and continues to cater for this age range moving forward as this
-# is the primary age range of this websites target audience.  
+# percent of the traffic on the website. Therefore, it is important that this
+# website continues to cater for this age range moving forward as it 
+# appears to be the age range of the websites target audience. 
 
+# =============================================================================
+# Customer Analysis - Number of Items Purchased by Gender
+# =============================================================================
 
+unwind = {'$unwind':'$Basket'}
+group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
+totalItems = list(shopcol.aggregate([unwind,group]))
+print(totalItems)
+# [{'_id': None, 'total': 513464}]
 
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Female' }}
+group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
+totalItemsFemale = list(shopcol.aggregate([match,unwind,group]))
+print(totalItemsFemale)
+# [{'_id': None, 'total': 360283}]
 
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Male' }}
+group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
+totalItemsMale = list(shopcol.aggregate([match,unwind,group]))
+print(totalItemsMale)
+# [{'_id': None, 'total': 153181}]
 
-
+# The above Analysis shows the total number of items bought by gender. It is 
+# clear that Females bought more items than Males (over twice as much). Males
+# bought a total of 153181 items and females bought a total of 360283 items. 
 
 
 
