@@ -8,8 +8,10 @@ Created on Fri Dec 18 22:34:10 2020
 
 import pymongo
 import os
-import atlasCredentials
 
+
+os.chdir('/Users/williamhadnett/Documents/Data_Science/Data_Science_CA3_William_Hadnett')
+import atlasCredentials
 # =============================================================================
 # Connect to MongoDB
 # =============================================================================
@@ -55,3 +57,40 @@ print(result)
 # and females visited the site more during the month of December. This makes
 # sense as customers were most likely buying Christmas gifts during this month.
 # However, overall per month females appear to visit the site more.  
+
+# =============================================================================
+# Customer Analysis - Number of Visits by Age
+# =============================================================================
+
+# Find Max Age in Collection
+group={'$group': {'_id': '$status', 'MaxAge':{'$max':'$Customer.Age'}}}
+result = list(shopcol.aggregate([group]))
+print(result)
+# MaxAge: 80
+
+# Find Min Age in Collection
+group={'$group': {'_id': '$status', 'MinAge':{'$min':'$Customer.Age'}}}
+result = list(shopcol.aggregate([group]))
+print(result)
+# MinAge: 18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
