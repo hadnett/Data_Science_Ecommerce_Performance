@@ -108,7 +108,8 @@ print(percent20To30)
 # It appears that the majority of the visits to this website are made by people
 # between the ages of 20 and 30 (inclusive). This age range accounts for 63.6 
 # percent of the traffic on the website. Therefore, it is important that the
-# website is and continues to cater for this age range moving forward. 
+# website is and continues to cater for this age range moving forward as this
+# is the primary age range of this websites target audience.  
 
 
 
