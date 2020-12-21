@@ -278,12 +278,43 @@ print(avgPrice)
 # higher average value. Visitors under 40 and between 40 and 60 only have a 0.1
 # difference in their average value.
 
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
+group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
+totalValue = list(shopcol.aggregate([match,unwind,group]))
+print(totalValue)
+# 'TotalValue': 103648.52
 
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
+group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
+totalValue = list(shopcol.aggregate([match,unwind,group]))
+print(totalValue)
+# 'TotalValue': 15664.2
 
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
+group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
+totalValue = list(shopcol.aggregate([match,unwind,group]))
+print(totalValue)
+# 'TotalValue': 4328.44
 
+query = { 'Customer.Age': {'$lt': 40} }
+result = shopcol.count_documents(query)
+print(result)
+# Total Document under 40: 1670
 
+query = { 'Customer.Age': {'$gt': 60} }
+result = shopcol.count_documents(query)
+print(result)
+# Total Documents over 60: 73
 
-
+# After reviewing the totalValue for each age group it is clear that the under
+# 40s have a larger total value. However, this does not match the average 
+# value identified ealier in this section. This may be partily due to the sample
+# size as we know that when sample size increases the STD decreases and vice versa.
+# The average for the under 40s is also more precise due to the 'Law of Large 
+# Numbers'. 
 
 
 
