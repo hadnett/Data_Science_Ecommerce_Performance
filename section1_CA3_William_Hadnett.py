@@ -273,9 +273,10 @@ avgPrice = list(shopcol.aggregate([match,unwind,group]))
 print(avgPrice)
 # 'AverageValue': 3.2133927245731253
 
-# The average value is similiar across the three age ranges outlined. 
-# However, it can be noted that visitors over the age of 60 have a slightly higher
-# average value than visitors under 60.
+# The average value is similiar across the three age ranges outlined above. 
+# However, it can be noted that visitors in the over 60s age group have a slightly
+# higher average value. Visitors under 40 and between 40 and 60 only have a 0.1
+# difference in their average value.
 
 
 
