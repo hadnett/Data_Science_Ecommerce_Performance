@@ -203,7 +203,34 @@ minPrice = list(shopcol.aggregate([unwind,group]))
 print(minPrice)
 # [{'_id': None, 'MinValue': 0.07}]
 
-# Large difference between the most expensive item and the cheapest item.
+# Large difference between the most expensive and cheapest item.
+
+# Find the average value of basket for Females
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Female' }}
+group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
+avgPrice = list(shopcol.aggregate([match,unwind,group]))
+print(avgPrice)
+# 'AverageValue': 3.122939869562101
+
+# Find the average value of basket for Females
+unwind = {'$unwind':'$Basket'}
+match = {'$match':{'Customer.Gender': 'Male' }}
+group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
+avgPrice = list(shopcol.aggregate([match,unwind,group]))
+print(avgPrice)
+# 'AverageValue': 2.929234227002729
+
+# Females tend to have a larger average value than Males. This would suggest 
+# that on average females pruchase more expensive items than males.
+
+
+
+
+
+
+
+
 
 
 
