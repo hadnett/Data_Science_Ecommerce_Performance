@@ -74,12 +74,41 @@ result = list(shopcol.aggregate([group]))
 print(result)
 # MinAge: 18
 
+query = { 'Customer.Age': {'$lt': 40} }
+resultAgeLT40 = shopcol.count_documents(query)
 
+query = { 'Customer.Age': {'$gte': 40, '$lte': 60} }
+resultAgeGTE40LTE60 = shopcol.count_documents(query)
 
+query = { 'Customer.Age': {'$gt': 60} }
+resultAgeGT60 = shopcol.count_documents(query)
 
+print("\nNumber of Customers Under 40: ", resultAgeLT40)
+print("Number of Customers between 40 and 60 inclusive: ", resultAgeGTE40LTE60)
+print("Number of Customers 60+: ", resultAgeGT60 )
+#Number of Customers Under 40:  1670
+#Number of Customers between 40 and 60 inclusive:  257
+#Number of Customers 60+:  73
 
+# To compare number of visits by age the ages have been seperated into three 
+# groups. Customers under 40, customers between the age of 40 and 60 (inclusive)
+# and customers over 60. It is clear that the majority of the visits to this website
+# are made by visitors under the age of 40.  
 
+# Further Analysis of customer visits under 40. 
+query = { 'Customer.Age': {'$gte': 20, '$lte': 30}}
+resultAgeGTE20LTE30 = shopcol.count_documents(query)
+print("\nNumber of Customers between 20 and 30 inclusive: ", resultAgeGTE20LTE30)
 
+# Find percentage of customer visits between 20 and 30 (inclusive).
+totalDocuments = shopcol.count_documents({})
+percent20To30 = (resultAgeGTE20LTE30/totalDocuments) * 100
+print(percent20To30)
+# percent20To30 = 63.6
+# It appears that the majority of the visits to this website are made by people
+# between the ages of 20 and 30 (inclusive). This age range accounts for 63.6 
+# percent of the traffic on the website. Therefore, it is important that the
+# website is and continues to cater for this age range moving forward. 
 
 
 
