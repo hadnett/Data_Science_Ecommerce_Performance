@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 18 22:34:10 2020
-
-@author: williamhadnett
+@author: williamhadnett D00223305
 """
 
 import pymongo
