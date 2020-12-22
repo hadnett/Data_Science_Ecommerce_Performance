@@ -145,36 +145,23 @@ print(totalItems)
 # Customer Analysis - Number of Items Purchased by Age
 # =============================================================================
 
-# Total Items purchased by visitors under 40 years of age.
+# Total Items purchased by the three age groups.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
-group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
-totalItemsUnder40 = list(shopcol.aggregate([match,unwind,group]))
-print(totalItemsUnder40)
-# [{'_id': None, 'total': 447076}]
-
-# Total Items purchased by visitors between 40 and 60 years of age (inclusive).
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
-group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
-totalItems40To60 = list(shopcol.aggregate([match,unwind,group]))
-print(totalItems40To60)
-# [{'_id': None, 'total': 52369}]
-
-# Total Items purchased by visitors over 60.
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
-group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
-totalItemsOver60 = list(shopcol.aggregate([match,unwind,group]))
-print(totalItemsOver60)
-# [{'_id': None, 'total': 14019}]
+group = {'$group':{'_id': 1,'totalItemsPurchased':{'$sum':'$Basket.Quantity'}, 
+                    'Under40': {'$sum':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.Quantity', 0] }},
+                    'Between40and60': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.Quantity', 0] }},
+                    'Over60': {'$sum': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.Quantity', 0] }},
+                    }}
+result = list(shopcol.aggregate([unwind,group]))
+print(result)
+# [{'_id': 1, 'totalItemsPurchased': 513464, 'Under40': 447076, 'Between40and60': 52369, 'Over60': 14019}]
 
 # Further Analysis of Number of Items bought by Age
-percentItemsOver40 = ((totalItems40To60[0]['total'] + totalItemsOver60[0]['total']) / totalItems[0]['total']) *100
+percentItemsOver40 = ((result[0]['Between40and60'] + result[0]['Over60']) / result[0]['totalItemsPurchased']) *100
 print(percentItemsOver40)
 # 12.9294361435271
 
-percentItemsUnder40 = (totalItemsUnder40[0]['total'] / totalItems[0]['total']) * 100
+percentItemsUnder40 = (result[0]['Under40'] / result[0]['totalItemsPurchased']) * 100
 print(percentItemsUnder40)
 # 87.07056385647289
 
