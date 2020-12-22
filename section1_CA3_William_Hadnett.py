@@ -238,10 +238,9 @@ print(result)
 # higher average value. Visitors under 40 and between 40 and 60 only have a 0.1
 # difference in their average value.
 
-
 # Find total number of documents for visitors less than 40 years old or greater than 60 years old.
 group = {'$group': {'_id': '$Customer.ID', 'Age': {'$max': "$Customer.Age"}}}
-group2 = {'$group': {'_id': 1, 
+group2 = {'$group': {'_id': 1,
                      'TotalUnder40': {'$sum':{ "$cond": [ { "$lt": [ "$Age", 40 ] }, 1, 0] }},
                      'TotalOver60': {'$sum':{ "$cond": [ { "$gt": [ "$Age", 60 ] }, 1, 0] }},
                      }}
@@ -282,13 +281,17 @@ print(avgSpend)
 # Customer Analysis - Total Spend by Age
 # ============================================================================= 
 
-# Total spend under 40s
+# Find the total spend across the three age groups.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
-group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
-totalSpend = list(shopcol.aggregate([match,unwind,group]))
-print(totalSpend)
-# 'totalSpend': 809837.76
+group = {'$group':{'_id': 1,'totalSpend':{'$sum':'$Basket.UnitPrice'}, 
+                    'TotalSpendUnder40': {'$sum':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}, 0] }},
+                    'TotalSpendBetween40and60': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}, 0] }},
+                    'TotalSpendOver60': {'$sum': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}, 0] }}
+                    }}
+result = list(shopcol.aggregate([unwind,group]))
+print(result)
+# [{'_id': 1, 'totalItemsPurchased': 123641.16, 'TotalSpendUnder40': 809837.76, 
+# 'TotalSpendBetween40and60': 94601.73, 'TotalSpendOver60': 22810.88}]
 
 # Find the average spend under 40
 unwind = {'$unwind':'$Basket'}
@@ -298,14 +301,6 @@ avgSpend = list(shopcol.aggregate([match,unwind,group]))
 print(avgSpend)
 # 'avgSpend': 23.882678934796072
 
-# Total spend between 40 and 60 inclusive
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
-group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
-totalSpend = list(shopcol.aggregate([match,unwind,group]))
-print(totalSpend)
-# 'totalSpend': 94601.73
-
 # Find the average spend between 40 and 60 inclusive
 unwind = {'$unwind':'$Basket'}
 match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
@@ -313,14 +308,6 @@ group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Bas
 avgSpend = list(shopcol.aggregate([match,unwind,group]))
 print(avgSpend)
 # 'avgSpend': 18.52030736100235
-
-# Total spend over 60
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
-group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
-totalSpend = list(shopcol.aggregate([match,unwind,group]))
-print(totalSpend)
-# 'totalSpend': 22810.88
 
 # Find the average spend over 60
 unwind = {'$unwind':'$Basket'}
