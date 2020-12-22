@@ -299,9 +299,10 @@ print(avgSpend)
 # the under 40s with a total spend of 809837.76 and an average spend of 23.88.  
 
 # =============================================================================
-# Customer Analysis - Additional Analysis - Repeating Customers
+# Customer Analysis - Additional Analysis
 # ============================================================================= 
 
+####### Repeat Customers ##########
 # Find total number of repeating customers.
 group = {'$group': {'_id': '$Customer.ID', 'NumberVisits': {'$sum': 1}}}
 group2 = {'$group': {'_id': 1, 'TotalRepeatingCustomers': {'$sum':{ "$cond": [ { "$gt": [ "$NumberVisits", 1 ] }, 1, 0]}}}}
@@ -315,6 +316,16 @@ group2 = {'$group': {'_id': 0, 'AverageNumberofRevisits': {'$avg': "$NumberVisit
 result = list(shopcol.aggregate([group,group2]))
 print(result)
 # [{'_id': 0, 'TotalRepeatingCustomers': 1.7937219730941705}]
+
+# Find repeating customers by gender
+group = {'$group': {'_id': '$Customer.ID', 'NumberVisits': {'$sum': 1}, 'Gender': {'$max': "$Customer.Gender"}}}
+group2 = {'$group': {'_id': '$Gender', 'TotalRepeatingCustomers': {'$sum':{ "$cond": [ { "$gt": [ "$NumberVisits", 1 ] }, 1, 0]}}}}
+result = list(shopcol.aggregate([group,group2]))
+print(result)
+# Female customers tend to revisit the site more than male customers.
+
+
+
 
 # =============================================================================
 # Customer Analysis - Summary
