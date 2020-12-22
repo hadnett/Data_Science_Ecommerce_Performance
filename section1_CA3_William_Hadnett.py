@@ -21,22 +21,34 @@ mydb = client['test']
 
 shopcol = mydb['websiteshop']
 
+# Check all customers uploaded to altas.
+group = {'$group': {'_id': 0, 'Number': {'$sum': 1}}}
+result = list(shopcol.aggregate([group]))
+print(result)
+
 # =============================================================================
 # Customer Analysis - Number of Visits by Gender
 # =============================================================================
 
-query = { 'Customer.Gender': 'Female' }
-result = shopcol.count_documents(query)
+# Number of shopping trips by gender
+group = {'$group': {'_id': '$Customer.Gender', 'count': {'$sum': 1}}}
+result = list(shopcol.aggregate([group]))
 print(result)
 # Number of Female Visitors: 1391 
-
-query = { 'Customer.Gender': 'Male' }
-result1 = shopcol.count_documents(query)
-print(result1)
 # Number of Male Visitors: 609
-# It is clear from the results returned that this ecommerce platform has considerably
-# more female visitors than male visitors.
 
+# Find the number of unique customers by gender.
+group = {'$group': {'_id': '$Customer.ID', 'Gender': {'$max': "$Customer.Gender"}}}
+group2 = {'$group': {'_id': '$Gender', 'Number': {'$sum': 1}}}
+result = list(shopcol.aggregate([group, group2]))
+print(result)
+# Number of Unique Female Visitors: 713
+# Number of Unique Male Visitors: 402
+
+# It is clear from the results returned that this ecommerce platform has 
+# visited by considerably more females than males.
+
+# Group Female visits by month.
 project = {'$project': {'month': {'$month': {'$toDate': '$InvoiceDate'}}}}
 match = {'$match':{ 'Customer.Gender': 'Female' }}
 group = {'$group': {'_id': '$month', 'count': {'$sum': 1}}}
@@ -44,6 +56,7 @@ result = list(shopcol.aggregate([match, project, group]))
 print(result)
 #[{'_id': 11, 'count': 189}, {'_id': 12, 'count': 744}, {'_id': 1, 'count': 458}]
 
+# Group Male visits by month.
 project = {'$project': {'month': {'$month': {'$toDate': '$InvoiceDate'}}}}
 match = {'$match':{ 'Customer.Gender': 'Male' }}
 group = {'$group': {'_id': '$month', 'count': {'$sum': 1}}}
@@ -114,27 +127,19 @@ print(percent20To30)
 # Customer Analysis - Number of Items Purchased by Gender
 # =============================================================================
 
+# Find total number of items purchased.
 unwind = {'$unwind':'$Basket'}
-group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
+group={'$group': {'_id': 1, 'total':{'$sum':'$Basket.Quantity'}}}
 totalItems = list(shopcol.aggregate([unwind,group]))
 print(totalItems)
-# [{'_id': None, 'total': 513464}]
+# [{'_id': 1, 'total': 513464}]
 
 # Total items purchased by Females.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Female' }}
-group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
-totalItemsFemale = list(shopcol.aggregate([match,unwind,group]))
-print(totalItemsFemale)
-# [{'_id': None, 'total': 360283}]
-
-# Total items purchased by Males.
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Male' }}
-group={'$group': {'_id': '$status', 'total':{'$sum':'$Basket.Quantity'}}}
-totalItemsMale = list(shopcol.aggregate([match,unwind,group]))
-print(totalItemsMale)
-# [{'_id': None, 'total': 153181}]
+group = {'$group': {'_id': '$Customer.Gender', 'total':{'$sum':'$Basket.Quantity'}}}
+totalItems = list(shopcol.aggregate([unwind, group]))
+print(totalItems)
+# [{'_id': 'Male', 'total': 153181}, {'_id': 'Female', 'total': 360283}]
 
 # The above Analysis shows the total number of items bought by gender. It is 
 # clear that Females bought more items than Males (over twice as much). Males
@@ -203,40 +208,23 @@ print(minPrice)
 
 # Large difference between the most expensive and cheapest item.
 
-# Find the average value for Females
+# Find the average value for Male and Females
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Female' }}
-group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
-avgPrice = list(shopcol.aggregate([match,unwind,group]))
+group={'$group': {'_id': '$Customer.Gender', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
+avgPrice = list(shopcol.aggregate([unwind,group]))
 print(avgPrice)
-# 'AverageValue': 3.122939869562101
+# [{'_id': 'Female', 'AverageValue': 3.122939869562101}, {'_id': 'Male', 'AverageValue': 2.929234227002729}]
 
-# Find the average value for Males
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Male' }}
-group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
-avgPrice = list(shopcol.aggregate([match,unwind,group]))
-print(avgPrice)
-# 'AverageValue': 2.929234227002729
 
 # Females tend to have a larger average value than Males. This would suggest 
 # that on average females purchase more expensive items than males.
 
-# Total value of female baskets.
+# Total value of female and male baskets.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Female' }}
-group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
-totalValue = list(shopcol.aggregate([match,unwind,group]))
+group={'$group': {'_id': '$Customer.Gender', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
+totalValue = list(shopcol.aggregate([unwind,group]))
 print(totalValue)
-# 'TotalValue': 87148.76
-
-# Total value of male baskets.
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Male' }}
-group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
-totalValue = list(shopcol.aggregate([match,unwind,group]))
-print(totalValue)
-# 'TotalValue': 36492.4
+# [{'_id': 'Female', 'TotalValue': 87148.76}, {'_id': 'Male', 'TotalValue': 36492.4}]
 
 # The total value of the for females is considerably more than the
 # total value for males. This could be caused by either females buying more
@@ -320,37 +308,20 @@ print(result)
 # Customer Analysis - Total Spend by Gender
 # ============================================================================= 
 
-# Find the total spend of female visitors.
+# Find the total spend of female and male visitors.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Female'}}
-group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
-totalSpend = list(shopcol.aggregate([match,unwind,group]))
+match = {'$match':{'': 'Female'}}
+group={'$group': {'_id': '$Customer.Gender',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+totalSpend = list(shopcol.aggregate([unwind,group]))
 print(totalSpend)
-# 'totalSpend': 643346.28
+# [{'_id': 'Female', 'totalSpend': 643346.28}, {'_id': 'Male', 'totalSpend': 283904.09}]
 
-# Find the average female spend.
+# Find the average female and male spend.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Female'}}
-group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
-avgSpend = list(shopcol.aggregate([match,unwind,group]))
+group={'$group': {'_id': '$Customer.Gender',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
+avgSpend = list(shopcol.aggregate([unwind,group]))
 print(avgSpend)
-# 'avgSpend': 23.05404859170071
-
-# Find the total spend of male visitors.
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Male'}}
-group={'$group': {'_id': '$status',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
-totalSpend = list(shopcol.aggregate([match,unwind,group]))
-print(totalSpend)
-# 'totalSpend': 283904.09
-
-# Find the average female spend.
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{'Customer.Gender': 'Male'}}
-group={'$group': {'_id': '$status',  'avgSpend': {'$avg': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
-avgSpend = list(shopcol.aggregate([match,unwind,group]))
-print(avgSpend)
-# 'avgSpend': 22.7888978969337
+# [{'_id': 'Male', 'avgSpend': 22.7888978969337}, {'_id': 'Female', 'avgSpend': 23.05404859170071}]
 
 # Female visitors clearly spent more than male visitors on this website. Females
 # spend a total of 643346.28 while males only spend a total of 283904.09. 
