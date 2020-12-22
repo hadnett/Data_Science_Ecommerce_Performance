@@ -25,15 +25,16 @@ shopcol = mydb['websiteshop']
 # Product Association
 # =============================================================================
 
-#Find top ten products for association analysis
+#Find top ten products for association analysis based on quantity purchased.
 unwind = {'$unwind':'$Basket'}
-group = {'$group': {'_id': '$Basket.StockCode', 'count': {'$sum': 1}}}
+group = {'$group': {'_id': '$Basket.StockCode', 'count': {'$sum': '$Basket.Quantity'}}}
 sort={'$sort':{'count':-1}}
 limit = {'$limit':10}
 result = list(shopcol.aggregate([unwind,group,sort,limit]))
 print(result)
-# [{'_id': '85123A', 'count': 320}, {'_id': '22423', 'count': 211}, 
-# {'_id': '22469', 'count': 182}, {'_id': '22834', 'count': 162}, 
-# {'_id': '22961', 'count': 160}, {'_id': '22111', 'count': 160}, 
-# {'_id': '21485', 'count': 155}, {'_id': '22470', 'count': 152}, 
-# {'_id': '22113', 'count': 146}, {'_id': '22112', 'count': 143}]
+# [{'_id': '85123A', 'count': 8508}, {'_id': '21212', 'count': 6246}, 
+# {'_id': '84077', 'count': 6051}, {'_id': '85099B', 'count': 4048}, 
+# {'_id': '22834', 'count': 3914}, {'_id': '22469', 'count': 3857}, 
+# {'_id': '22492', 'count': 3600}, {'_id': '22197', 'count': 3425}, 
+# {'_id': '21108', 'count': 3303}, {'_id': '84879', 'count': 3280}]
+
