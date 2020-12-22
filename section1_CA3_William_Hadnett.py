@@ -216,67 +216,38 @@ print(totalValue)
 # Customer Analysis - Value of Items Purchased by Age
 # =============================================================================
 
-# Find average value for visitors under 40 years of age.
+# Average value and total value across the three age groups.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
-group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
-avgPrice = list(shopcol.aggregate([match,unwind,group]))
-print(avgPrice)
-# 'AverageValue': 3.0566669615736237
-
-# Find the average value for visitors between 40 and 60 (inclusive).
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
-group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
-avgPrice = list(shopcol.aggregate([match,unwind,group]))
-print(avgPrice)
-# 'AverageValue': 3.0666014095536416
-
-# Find average value for visitors over 60 years of age.
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
-group={'$group': {'_id': '$status', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
-avgPrice = list(shopcol.aggregate([match,unwind,group]))
-print(avgPrice)
-# 'AverageValue': 3.2133927245731253
+group = {'$group':{'_id': 1,'totalItemsPurchased':{'$sum':'$Basket.UnitPrice'}, 
+                    'AvgValueUnder40': {'$avg':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.UnitPrice', 0] }},
+                    'TotalValueUnder40': {'$sum':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.UnitPrice', 0] }},
+                    'AvgValueBetween40and60': { "$avg": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.UnitPrice', 0] }},
+                    'TotalValueBetween40and60': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.UnitPrice', 0] }},
+                    'AvgValueOver60': {'$avg': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.UnitPrice', 0] }},
+                    'TotalValueOver60': {'$sum': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.UnitPrice', 0] }}
+                    }}
+result = list(shopcol.aggregate([unwind,group]))
+print(result)
+# [{'_id': 1, 'totalItemsPurchased': 123641.16, 
+# 'AvgValueUnder40': 2.5678456049945497, 'TotalValueUnder40': 103648.52, 
+# 'AvgValueBetween40and60': 0.3880735308690913, 'TotalValueBetween40and60': 15664.2, 
+#'AvgValueOver60': 0.1072351600436032, 'TotalValueOver60': 4328.44}]
 
 # The average value is similiar across the three age ranges outlined above. 
 # However, it can be noted that visitors in the over 60s age group have a slightly
 # higher average value. Visitors under 40 and between 40 and 60 only have a 0.1
 # difference in their average value.
 
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$lt': 40} }}
-group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
-totalValue = list(shopcol.aggregate([match,unwind,group]))
-print(totalValue)
-# 'TotalValue': 103648.52
 
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gte': 40, '$lte': 60} }}
-group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
-totalValue = list(shopcol.aggregate([match,unwind,group]))
-print(totalValue)
-# 'TotalValue': 15664.2
-
-unwind = {'$unwind':'$Basket'}
-match = {'$match':{ 'Customer.Age': {'$gt': 60} }}
-group={'$group': {'_id': '$status', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
-totalValue = list(shopcol.aggregate([match,unwind,group]))
-print(totalValue)
-# 'TotalValue': 4328.44
-
-# Find total number of documents for visitors less than 40 years old.
-query = { 'Customer.Age': {'$lt': 40} }
-result = shopcol.count_documents(query)
+# Find total number of documents for visitors less than 40 years old or greater than 60 years old.
+group = {'$group': {'_id': '$Customer.ID', 'Age': {'$max': "$Customer.Age"}}}
+group2 = {'$group': {'_id': 1, 
+                     'TotalUnder40': {'$sum':{ "$cond": [ { "$lt": [ "$Age", 40 ] }, 1, 0] }},
+                     'TotalOver60': {'$sum':{ "$cond": [ { "$gt": [ "$Age", 60 ] }, 1, 0] }},
+                     }}
+result = list(shopcol.aggregate([unwind,group,group2]))
 print(result)
-# Total Document under 40: 1670
-
-# Find total number of documents for visitors more than 60 years old.
-query = { 'Customer.Age': {'$gt': 60} }
-result = shopcol.count_documents(query)
-print(result)
-# Total Documents over 60: 73
+# [{'_id': 1, 'TotalUnder40': 900, 'TotalOver60': 54}]
 
 # After reviewing the totalValue for each age group it is clear that the under
 # 40s have a larger total value. However, this does not match the average 
