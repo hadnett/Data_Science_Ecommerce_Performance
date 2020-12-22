@@ -76,7 +76,7 @@ def reducer(mapDataIn):
     for word in mapDataIn:
         if word[1] > maxBasket:
             maxBasket = word[1]
-            print(maxBasket)
+
     out = {'MaxBasket': maxBasket}
     return out
 
@@ -99,11 +99,55 @@ reduceCol2 = reducer(mapRes2)
 
 out = reducerCols(reduceCol1, reduceCol2)
 # Max Total Basket Price Across Both Stores and Customers: 
-# {'MaxBasket': 6539.400000000001}
+# {'MaxBasket': 6539.40}
 
 # =============================================================================
-# Question 3 - The average number of items purchased by nationality of customers
+# Question 3 - The Average Number of Items Purchased by Nationality of Customers
 # =============================================================================
 
+def mapper(collIn):
+    for doc in collIn:
+        yield (doc['Customer']['Country'], len(doc['Basket']), 1)
+        
 
+def reducer(mapDataIn):
+    out = {}
+    for word in mapDataIn:
+        if word[0] in out.keys():
+            out[word[0]]=[out[word[0]][0]+ word[1], out[word[0]][1]+ word[2]]
+        else:
+            out[word[0]]= [word[1],word[2]]
+            
+    return out
+
+
+def reducerCols(reduceCol1, reduceCol2):
+    out = reduceCol1
+    for key, value in reduceCol2.items():
+        if key in out.keys():
+            out[key]=[out[key][0]+ value[0], out[key][1]+ value[1]]
+        else:
+            out[key]=[value[0], value[1]]
+    return out
+
+
+result1 = list(amazoncol.find({}))
+result2 = list(ebaycol.find({}))
+mapRes1 = mapper(result1)
+mapRes2 = mapper(result2)
+
+reduceCol1 = reducer(mapRes1)
+reduceCol2 = reducer(mapRes2)
+
+out = reducerCols(reduceCol1, reduceCol2)
+
+averages=[{key, value[0]/value[1]} for key,value in out.items()]
+print(averages)
+
+# Average Number of Items per Country:
+# [{19.89971346704871, 'United Kingdom'}, {35.0, 'Portugal'}, 
+# {18.4375, 'Germany'}, {'France', 17.842105263157894}, 
+# {4.0, 'Finland'}, {'Spain', 43.333333333333336}, 
+# {24.0, 'EIRE'}, {13.333333333333334, 'Australia'}, 
+# {'Belgium', 14.0}, {43.0, 'Switzerland'}]
 
