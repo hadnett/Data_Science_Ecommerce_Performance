@@ -302,7 +302,8 @@ print(avgSpend)
 # Customer Analysis - Additional Analysis
 # ============================================================================= 
 
-####### Repeat Customers ##########
+####### Repeat Customers ########
+
 # Find total number of repeating customers.
 group = {'$group': {'_id': '$Customer.ID', 'NumberVisits': {'$sum': 1}}}
 group2 = {'$group': {'_id': 1, 'TotalRepeatingCustomers': {'$sum':{ "$cond": [ { "$gt": [ "$NumberVisits", 1 ] }, 1, 0]}}}}
@@ -322,9 +323,39 @@ group = {'$group': {'_id': '$Customer.ID', 'NumberVisits': {'$sum': 1}, 'Gender'
 group2 = {'$group': {'_id': '$Gender', 'TotalRepeatingCustomers': {'$sum':{ "$cond": [ { "$gt": [ "$NumberVisits", 1 ] }, 1, 0]}}}}
 result = list(shopcol.aggregate([group,group2]))
 print(result)
+# [{'_id': 'Female', 'TotalRepeatingCustomers': 217}, 
+# {'_id': 'Male', 'TotalRepeatingCustomers': 172}]
 # Female customers tend to revisit the site more than male customers.
 
+####### Customer Nationality ########
 
+# Find top 3 countries
+group = {'$group': {'_id': '$Customer.ID', 'Country':{'$max':'$Customer.Country'}}}
+group2 = {'$group':{ '_id':'$Country','NumberOfCustomers': {'$sum': 1}}}
+sort={'$sort':{'NumberOfCustomers':-1}}
+limit = {'$limit':3}
+result = list(shopcol.aggregate([group,group2,sort, limit]))
+print(result)
+# [{'_id': 'United Kingdom', 'NumberOfCustomers': 1010}, 
+# {'_id': 'France', 'NumberOfCustomers': 27}, 
+# {'_id': 'Germany', 'NumberOfCustomers': 27}]
+
+# The majority of the visitors visiting this website are from the United Kingdom 
+# followed by France and Germany.
+
+group = {'$group': {'_id': '$Customer.ID', 'Country':{'$max':'$Customer.Country'}}}
+group2 = {'$group':{ '_id':'$Country','NumberOfCustomers': {'$sum': 1}}}
+sort={'$sort':{'NumberOfCustomers':1}}
+limit = {'$limit':3}
+result = list(shopcol.aggregate([group,group2,sort, limit]))
+print(result)
+# [{'_id': 'Cyprus', 'NumberOfCustomers': 1}, 
+# {'_id': 'Poland', 'NumberOfCustomers': 1}, 
+# {'_id': 'Channel Islands', 'NumberOfCustomers': 1}]
+
+# Cyprus, Poland and the Channel Islands only display 1 visitor to the site
+# therefore the business could decided to promote their products in these locations 
+# to promote reach and encourage engagement from these countries.
 
 
 # =============================================================================
