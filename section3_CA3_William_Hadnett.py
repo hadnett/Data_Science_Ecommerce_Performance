@@ -151,3 +151,63 @@ print(averages)
 # {24.0, 'EIRE'}, {13.333333333333334, 'Australia'}, 
 # {'Belgium', 14.0}, {43.0, 'Switzerland'}]
 
+# =============================================================================
+# Question 4 - The standard deviation in the basket price by gender of customers.
+# =============================================================================
+
+# Approach Taken From: https://gist.github.com/RedBeard0531/1886960
+# This approch was written in javascript and only found the standard dev
+# of a complete dataset. Therefore, modifications had to be made to convert
+# the approach found into Python and then group the data by gender.
+
+def mapper(collIn):
+    for doc in collIn:
+        for x in doc['Basket']:
+            yield (doc['Customer']['Gender'], x['Quantity']* x['UnitPrice'],  1, 0)
+        
+
+def reducer(mapDataIn):            
+    out = {}
+    for word in mapDataIn:
+        if word[0] in out.keys():
+            delta = out[word[0]][0]/out[word[0]][1] - word[1]/word[2]
+            weight = (out[word[0]][1] * word[2])/(out[word[0]][1] + word[2])
+            
+            out[word[0]]=[out[word[0]][0]+ word[1], out[word[0]][1]+ word[2], (delta*delta*weight)]
+        else:
+            out[word[0]]= [word[1],word[2]]
+            
+    return out
+
+
+def reducerCols(reduceCol1, reduceCol2):
+    out = reduceCol1
+    for key, value in reduceCol2.items():
+        if key in out.keys():
+            out[key]=[out[key][0]+ value[0], out[key][1]+ value[1], out[key][2]+ value[2]]
+        else:
+            out[key]=[value[0], value[1], value[2]]
+    return out
+
+
+result1 = list(amazoncol.find({}))
+result2 = list(ebaycol.find({}))
+mapRes1 = mapper(result1)
+mapRes2 = mapper(result2)
+    
+reduceCol1 = reducer(mapRes1)
+reduceCol2 = reducer(mapRes2)
+
+out = reducerCols(reduceCol1, reduceCol2)
+
+import math
+print("\n")
+for key, value in out.items():
+    average = value[0]/value[1]
+    variance = value[2]/value[1]
+    stddev = math.sqrt(variance)
+    print(key, "Average: ", average, " Variance: ", variance, " stddev: ", stddev)
+
+
+
+
