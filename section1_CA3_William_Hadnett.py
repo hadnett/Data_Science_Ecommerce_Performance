@@ -73,22 +73,13 @@ print(result)
 # Customer Analysis - Number of Visits by Age
 # =============================================================================
 
-# Find Max Age in Collection
-group={'$group': {'_id': '$status', 'MaxAge':{'$max':'$Customer.Age'}}}
-result = list(shopcol.aggregate([group]))
-print(result)
-# MaxAge: 80
-
-# Find Min Age in Collection
-group={'$group': {'_id': '$status', 'MinAge':{'$min':'$Customer.Age'}}}
-result = list(shopcol.aggregate([group]))
-print(result)
-# MinAge: 18
-
+# Find unique customer visits by age, along with max and min age.
 ageRanges = {'$group':{'_id':1, 'totalCustomers':{'$sum':1}, 
                     'Under40': {'$sum':{ "$cond": [ { "$lt": [ "$Age", 40 ] }, 1, 0] }},
                     'Between40and60': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Age", 40 ] }, { "$lte": ["$Age", 60] } ]}, 1, 0] }},
-                    'Over60': {'$sum': { "$cond": [ { "$gt": [ "$Age", 60 ] }, 1, 0] }}
+                    'Over60': {'$sum': { "$cond": [ { "$gt": [ "$Age", 60 ] }, 1, 0] }},
+                    'MaxAge':{'$max':'$Age'},
+                    'MinAge':{'$min':'$Age'}
                     }}
 
 group = {'$group': {'_id': '$Customer.ID', 'Age': {'$max': "$Customer.Age"}}}
