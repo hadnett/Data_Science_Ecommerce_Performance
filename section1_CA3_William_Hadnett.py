@@ -173,44 +173,31 @@ print(percentItemsUnder40)
 # Customer Analysis - Value of Items Purchased by Gender
 # =============================================================================
 
-# Find the max value of an item in a customers basket.
+# Find the average, max and min value for Male and Females
 unwind = {'$unwind':'$Basket'}
-group={'$group': {'_id': '$status', 'MaxValue':{'$max':'$Basket.UnitPrice'}}}
-maxPrice = list(shopcol.aggregate([unwind,group]))
-print(maxPrice)
-# [{'_id': None, 'MaxPrice': 295}]
-
-# Find the min value of an item in a customers basket.
-unwind = {'$unwind':'$Basket'}
-group={'$group': {'_id': '$status', 'MinValue':{'$min':'$Basket.UnitPrice'}}}
-minPrice = list(shopcol.aggregate([unwind,group]))
-print(minPrice)
-# [{'_id': None, 'MinValue': 0.07}]
-
-# Large difference between the most expensive and cheapest item.
-
-# Find the average value for Male and Females
-unwind = {'$unwind':'$Basket'}
-group={'$group': {'_id': '$Customer.Gender', 'AverageValue':{'$avg':'$Basket.UnitPrice'}}}
+group={'$group': {'_id': '$Customer.Gender', 'AverageValue':{'$avg':'$Basket.UnitPrice'}, 'MinValue':{'$min':'$Basket.UnitPrice'},
+                  'MaxValue':{'$max':'$Basket.UnitPrice'}
+                  }}
 avgPrice = list(shopcol.aggregate([unwind,group]))
 print(avgPrice)
-# [{'_id': 'Female', 'AverageValue': 3.122939869562101}, {'_id': 'Male', 'AverageValue': 2.929234227002729}]
+# [{'_id': 'Male', 'AverageValue': 2.929234227002729, 'MinValue': 0.12, 'MaxValue': 295}, 
+# {'_id': 'Female', 'AverageValue': 3.122939869562101, 'MinValue': 0.07, 'MaxValue': 295}]
 
+# Large difference between the most expensive and cheapest item.
 
 # Females tend to have a larger average value than Males. This would suggest 
 # that on average females purchase more expensive items than males.
 
-# Total value of female and male baskets.
-unwind = {'$unwind':'$Basket'}
-group={'$group': {'_id': '$Customer.Gender', 'TotalValue':{'$sum':'$Basket.UnitPrice'}}}
-totalValue = list(shopcol.aggregate([unwind,group]))
-print(totalValue)
-# [{'_id': 'Female', 'TotalValue': 87148.76}, {'_id': 'Male', 'TotalValue': 36492.4}]
+# Average number of different items in a basket by Gender
+project = {'$project': {'_id': 0, 'Gender':'$Customer.Gender', 'NumberOfItems': {'$size': '$Basket'}}}
+group = {'$group': {'_id': '$Gender', 'Average':{'$avg':'$NumberOfItems'}}}
+result = list(shopcol.aggregate([project,group]))
+print(result)
+# [{'_id': 'Female', 'Average': 20.061826024442848}, 
+# {'_id': 'Male', 'Average': 20.45648604269294}]
 
-# The total value of the for females is considerably more than the
-# total value for males. This could be caused by either females buying more
-# items or by females buying more expensive items. However, it is clear that 
-# the baskets belonging to females are more valuable. 
+# The Average number of items per basket are relatively similiar for both Males
+# and females, with males having slightly more items on average in their basket.
 
 # =============================================================================
 # Customer Analysis - Value of Items Purchased by Age
@@ -283,14 +270,14 @@ print(avgSpend)
 
 # Find the total spend across the three age groups.
 unwind = {'$unwind':'$Basket'}
-group = {'$group':{'_id': 1,'totalSpend':{'$sum':'$Basket.UnitPrice'}, 
+group = {'$group':{'_id': 1,'totalSpend':{'$sum':{ '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}, 
                     'TotalSpendUnder40': {'$sum':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}, 0] }},
                     'TotalSpendBetween40and60': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}, 0] }},
                     'TotalSpendOver60': {'$sum': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}, 0] }}
                     }}
 result = list(shopcol.aggregate([unwind,group]))
 print(result)
-# [{'_id': 1, 'totalItemsPurchased': 123641.16, 'TotalSpendUnder40': 809837.76, 
+# [{'_id': 1, 'totalSpend': 927250.37, 'TotalSpendUnder40': 809837.76, 
 # 'TotalSpendBetween40and60': 94601.73, 'TotalSpendOver60': 22810.88}]
 
 # Find the average spend under 40
