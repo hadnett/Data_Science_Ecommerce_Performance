@@ -68,26 +68,26 @@ out = reducerCols(reduceCol1, reduceCol2)
 
 def mapper(collIn):
     for doc in collIn:
-        yield (doc['Customer']['Gender'], 1)
-        
+        for x in doc['Basket']:
+            yield ('total', x['Quantity']* x['UnitPrice'])
 
 def reducer(mapDataIn):
-    out = {}
+    maxBasket = 0
     for word in mapDataIn:
-        if word[0] in out.keys():
-            out[word[0]] = out[word[0]] + word[1]
-        else:
-            out[word[0]] = word[1]
-            
+        if word[1] > maxBasket:
+            maxBasket = word[1]
+            print(maxBasket)
+    out = {'MaxBasket': maxBasket}
     return out
 
 
 def reducerCols(reduceCol1, reduceCol2):
-    out = reduceCol1
-    for key, value in reduceCol2.items():
-        out[key] = out.get(key, 0) + value
+    out = {}
+    if(reduceCol1['MaxBasket'] > reduceCol2['MaxBasket']):
+        out = {'MaxBasket': reduceCol1['MaxBasket']}
+    else:
+        out = {'MaxBasket': reduceCol2['MaxBasket']}
     return out
-
 
 result1 = list(amazoncol.find({}))
 result2 = list(ebaycol.find({}))
@@ -98,10 +98,12 @@ reduceCol1 = reducer(mapRes1)
 reduceCol2 = reducer(mapRes2)
 
 out = reducerCols(reduceCol1, reduceCol2)
-# Number of visits across amazon and ebay by gender:
-# {'Male': 120, 'Female': 279}
+# Max Total Basket Price Across Both Stores and Customers: 
+# {'MaxBasket': 6539.400000000001}
 
-
+# =============================================================================
+# Question 3 - The average number of items purchased by nationality of customers
+# =============================================================================
 
 
 
