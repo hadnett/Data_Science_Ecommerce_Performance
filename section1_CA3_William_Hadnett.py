@@ -85,21 +85,18 @@ result = list(shopcol.aggregate([group]))
 print(result)
 # MinAge: 18
 
-query = { 'Customer.Age': {'$lt': 40} }
-resultAgeLT40 = shopcol.count_documents(query)
+ageRanges = {'$group':{'_id':1, 'totalCustomers':{'$sum':1}, 
+                    'Under40': {'$sum':{ "$cond": [ { "$lt": [ "$Age", 40 ] }, 1, 0] }},
+                    'Between40and60': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Age", 40 ] }, { "$lte": ["$Age", 60] } ]}, 1, 0] }},
+                    'Over60': {'$sum': { "$cond": [ { "$gt": [ "$Age", 60 ] }, 1, 0] }}
+                    }}
 
-query = { 'Customer.Age': {'$gte': 40, '$lte': 60} }
-resultAgeGTE40LTE60 = shopcol.count_documents(query)
+group = {'$group': {'_id': '$Customer.ID', 'Age': {'$max': "$Customer.Age"}}}
+group2 = ageRanges
+result = list(shopcol.aggregate([group, group2]))
+print(result)
 
-query = { 'Customer.Age': {'$gt': 60} }
-resultAgeGT60 = shopcol.count_documents(query)
-
-print("\nNumber of Customers Under 40: ", resultAgeLT40)
-print("Number of Customers between 40 and 60 inclusive: ", resultAgeGTE40LTE60)
-print("Number of Customers 60+: ", resultAgeGT60 )
-#Number of Customers Under 40:  1670
-#Number of Customers between 40 and 60 inclusive:  257
-#Number of Customers 60+:  73
+# [{'_id': 1, 'totalCustomers': 1115, 'Under40': 900, 'Between40and60': 161, 'Over60': 54}]
 
 # To compare number of visits by age the ages have been seperated into three 
 # groups. Customers under 40, customers between the age of 40 and 60 (inclusive)
@@ -107,18 +104,15 @@ print("Number of Customers 60+: ", resultAgeGT60 )
 # are made by visitors under the age of 40.  
 
 # Further Analysis of customer visits under 40. 
-query = { 'Customer.Age': {'$gte': 20, '$lte': 30}}
-resultAgeGTE20LTE30 = shopcol.count_documents(query)
-print("\nNumber of Customers between 20 and 30 inclusive: ", resultAgeGTE20LTE30)
-
-# Find percentage of customer visits between 20 and 30 (inclusive).
-totalDocuments = shopcol.count_documents({})
-percent20To30 = (resultAgeGTE20LTE30/totalDocuments) * 100
-print(percent20To30)
-# percent20To30 = 63.6
+group = {'$group': {'_id': '$Customer.ID', 'Age': {'$max': "$Customer.Age"}}}
+group2 = {'$group': {'_id': 1, 'Between20and30': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Age", 20 ] }, { "$lte": ["$Age", 30] } ]}, 1, 0] }}}}
+result = list(shopcol.aggregate([group, group2]))
+print(result)
+# [{'_id': 1, 'Between20and30': 685}]
+# 685 / 1115 = 61.43%
 
 # It appears that the majority of the visits to this website are made by people
-# between the ages of 20 and 30 (inclusive). This age range accounts for 63.6 
+# between the ages of 20 and 30 (inclusive). This age range accounts for 61.43% 
 # percent of the traffic on the website. Therefore, it is important that this
 # website continues to cater for this age range moving forward as it 
 # appears to be the age range of the websites target audience. 
