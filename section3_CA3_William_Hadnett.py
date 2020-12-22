@@ -208,6 +208,10 @@ for key, value in out.items():
     stddev = math.sqrt(variance)
     print(key, "Average: ", average, " Variance: ", variance, " stddev: ", stddev)
 
+# Male Average:  17.430399051758247  Variance:  0.31039880271467946  stddev:  0.5571344565853735
+# Female Average:  23.647031710914373  Variance:  0.05488990941869463  stddev:  0.2342859565118973
 
+# Female baskets will have less spread than male baskets as the standard deviation is lower.
+# Variance shows that the female baskets are closer to the mean than male baskets.
 
 
