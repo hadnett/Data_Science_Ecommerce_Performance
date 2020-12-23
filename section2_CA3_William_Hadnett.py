@@ -27,16 +27,16 @@ shopcol = mydb['websiteshop']
 
 #Find top ten products for association analysis based on quantity purchased.
 unwind = {'$unwind':'$Basket'}
-group = {'$group': {'_id': '$Basket.StockCode', 'count': {'$sum': '$Basket.Quantity'}}}
+group = {'$group': {'_id': '$Basket.StockCode', 'count': {'$sum': 1}}}
 sort={'$sort':{'count':-1}}
-limit = {'$limit':10}
-result = list(shopcol.aggregate([unwind,group,sort,limit]))
-print(result)
-# [{'_id': '85123A', 'count': 8508}, {'_id': '21212', 'count': 6246}, 
-# {'_id': '84077', 'count': 6051}, {'_id': '85099B', 'count': 4048}, 
-# {'_id': '22834', 'count': 3914}, {'_id': '22469', 'count': 3857}, 
-# {'_id': '22492', 'count': 3600}, {'_id': '22197', 'count': 3425}, 
-# {'_id': '21108', 'count': 3303}, {'_id': '84879', 'count': 3280}]
+limit={'$limit': 10}
+top10 = list(shopcol.aggregate([unwind,group,sort,limit]))
+print(top10)
+# [{'_id': '85123A', 'count': 320}, {'_id': '22423', 'count': 211}, 
+# {'_id': '22469', 'count': 182}, {'_id': '22834', 'count': 162}, 
+# {'_id': '22111', 'count': 160}, {'_id': '22961', 'count': 160}, 
+# {'_id': '21485', 'count': 155}, {'_id': '22470', 'count': 152}, 
+# {'_id': '22113', 'count': 146}, {'_id': '22112', 'count': 143}]
 
 # =============================================================================
 # Product Association - Product 85123A - Product 21212 - (Benchmark)
@@ -69,6 +69,7 @@ print(conf)
 query =  {'Basket.StockCode': '21212'}
 support21212 = shopcol.count_documents(query) / totalDocs[0]['total']
 print(support21212)
+# 0.056
 
 #Life(85123A -> 21212) = supp(85123A and 21212)/ supp(85123A) * supp(21212)
 lift = (supportBoth / support85123A) * support21212
@@ -77,14 +78,61 @@ print(lift)
 # So the support for 21212 is 0.004% more likely to bough if the basket contains
 # product 85123A than in general.
 
+# =============================================================================
+# Product Association - Generalize formula for top 10
+# =============================================================================
+
+# The above support, confidence and lift will act as a bench mark to ensure that the 
+# calculates for the top ten are carried out correctly. 
+def findAssoication(mongoResponse):
+    
+    pairs = findPairs(mongoResponse)
+    
+    group = {'$group': {'_id': 0, 'total': {'$sum': 1}}}
+    totalDocs = list(shopcol.aggregate([group]))
+    print(totalDocs)
+    
+    for i in pairs:
+        # Support(x) =  # of transactions in which x appears/total transactions
+        
+        query =  {'Basket.StockCode': i[0]['_id']}
+        supportItem1 = shopcol.count_documents(query) / totalDocs[0]['total']
+        print('Support Item 1: ',supportItem1)
+        # Support 85123A bought:  0.153 
+        
+        query =  {'Basket.StockCode': {'$all': [i[0]['_id'], i[1]['_id']]}}
+        supportBoth = shopcol.count_documents(query) / totalDocs[0]['total']
+        print('Support Both: ',supportBoth)
+        # Support Both bought: 0.0105
+        
+        #Confidence that 21212 will be bought when 85123A is bought.
+        #Conf(85123A -> 21212) = supp(85123A and 21212)/ supp(85123A)
+        
+        conf = supportBoth / supportItem1
+        print('Confidence: ',conf)
+        # conf: 0.06862745098039216
+         
+        # Lift 
+        query =  {'Basket.StockCode': i[1]['_id']}
+        supportItem2 = shopcol.count_documents(query) / totalDocs[0]['total']
+        print('Support Item 2: ',supportItem2)
+        # 0.056
+        
+        #Life(85123A -> 21212) = supp(85123A and 21212)/ supp(85123A) * supp(21212)
+        lift = supportBoth / (supportItem1 * supportItem2)
+        print("Lift: ",lift)
+        
+        print("\n")
 
 
+def findPairs(mongoResponse):
+    
+    it = iter(mongoResponse)
+    pairs = list(zip(it, it))
+    return pairs
 
 
-
-
-
-
+findAssoication(top10)
 
 
 
