@@ -142,7 +142,72 @@ def displayAssoication(support1, supportBoth, support2, conf, inverseConf, lift,
 
 calculateAssoication(top10)
 
+# Output of Assoication Analysis of Top Ten Items
+'''
+Support for Item  85123A :  0.16
+Support Both:  0.016
+Support Item  22423 :  0.1055
+Confidence:  0.1
+Lift  85123A  ->  22423 :  0.9478672985781991
 
+Support Item  22423 :  0.1055
+Support Both:  0.016
+Support for Item  85123A :  0.16
+Confidence:  0.15165876777251186
+Lift  22423  ->  85123A :  0.9478672985781991
+
+
+Support for Item  22469 :  0.091
+Support Both:  0.0085
+Support Item  22834 :  0.081
+Confidence:  0.09340659340659342
+Lift  22469  ->  22834 :  1.1531678198344866
+
+Support Item  22834 :  0.081
+Support Both:  0.0085
+Support for Item  22469 :  0.091
+Confidence:  0.10493827160493828
+Lift  22834  ->  22469 :  1.1531678198344866
+
+
+Support for Item  22111 :  0.08
+Support Both:  0.0105
+Support Item  22961 :  0.08
+Confidence:  0.13125
+Lift  22111  ->  22961 :  1.640625
+
+Support Item  22961 :  0.08
+Support Both:  0.0105
+Support for Item  22111 :  0.08
+Confidence:  0.13125
+Lift  22961  ->  22111 :  1.640625
+
+
+Support for Item  21485 :  0.0775
+Support Both:  0.0095
+Support Item  22470 :  0.076
+Confidence:  0.12258064516129032
+Lift  21485  ->  22470 :  1.6129032258064517
+
+Support Item  22470 :  0.076
+Support Both:  0.0095
+Support for Item  21485 :  0.0775
+Confidence:  0.125
+Lift  22470  ->  21485 :  1.6129032258064517
+
+
+Support for Item  22113 :  0.073
+Support Both:  0.017
+Support Item  22112 :  0.0715
+Confidence:  0.23287671232876717
+Lift  22113  ->  22112 :  3.257016955647093
+
+Support Item  22112 :  0.0715
+Support Both:  0.017
+Support for Item  22113 :  0.073
+Confidence:  0.2377622377622378
+Lift  22112  ->  22113 :  3.257016955647093
+'''
 
 
 
