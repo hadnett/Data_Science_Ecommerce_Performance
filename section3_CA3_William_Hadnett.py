@@ -280,15 +280,17 @@ totalEbay = list(ebaycol.aggregate([group]))
 
 totalDocs = totalEbay[0]['total'] + totalAmazon[0]['total']
 
-# out['item'][1]
+supportItem1 = out['item'][0] / totalDocs
+supportItem2 = out['item'][1] / totalDocs
+supportBoth = out['item'][2] / totalDocs
 
-conf = out['item'][2] / out['item'][0]
+conf = supportBoth / supportItem1
 print("Confidence 22113 => 22112: ",conf)
 # Confidence 22113 => 22112:  0.5172413793103449
 
-lift = out['item'][2]/ (out['item'][0]* out['item'][1])
+lift = supportBoth / (supportItem1 * supportItem2)
 print("Lift 22113 => 22112: ", lift)
-# Lift 22113 => 22112:  0.011755485893416929
+# Lift 22113 => 22112:  4.690438871473354
 
 
 
