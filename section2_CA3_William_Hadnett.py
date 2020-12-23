@@ -93,7 +93,7 @@ def calculateAssoication(mongoResponse):
     
     for i in pairs:
         # Support(x) =  # of transactions in which x appears/total transactions
-        query =  {'Basket.StockCode': i[0]['_id']}
+        # query =  {'Basket.StockCode': i[0]['_id']}
         supportItem1 = i[0]['count'] / totalDocs[0]['total']
 
         query =  {'Basket.StockCode': {'$all': [i[0]['_id'], i[1]['_id']]}}
@@ -111,7 +111,7 @@ def calculateAssoication(mongoResponse):
         # appears to be confidence as number of appearances remains the same for both 
         # items individually and together in the same basket. This metric can be 
         # gathered to display the inverse realtionship to the reader.
-        inverseConf = supportBoth /supportItem2
+        inverseConf = supportBoth / supportItem2
         
         #Lift(Item 1 -> Item 2) = supp(Item 1 and Item 2)/ supp(Item1) * supp(Item2)
         lift = supportBoth / (supportItem1 * supportItem2)
@@ -119,7 +119,6 @@ def calculateAssoication(mongoResponse):
 
 
 def findPairs(mongoResponse):
-    
     it = iter(mongoResponse)
     pairs = list(zip(it, it))
     return pairs

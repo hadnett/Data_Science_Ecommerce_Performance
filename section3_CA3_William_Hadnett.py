@@ -222,6 +222,96 @@ for key, value in out.items():
 # Question 5 - The confidence and lift measures for the association rule Code 22113 => 22112
 # =============================================================================
 
+# item 1: count, item 2: count, item1&item: count
+def mapper(collIn):
+    for doc in collIn:
+        countItem1 = countItem2 = False
+        for x in doc['Basket']:
+            if x['StockCode'] == '22113':
+                countItem1 = True
+            if x['StockCode'] == '22112':
+                countItem2 = True
+            
+        if countItem1 and not countItem2:
+            yield ('item', 1, 0, 0)
+        if countItem2 and not countItem1:
+            yield ('item', 0, 1, 0)
+        if countItem2 and countItem1: # basket: 
+            yield ('item', 1, 1, 1)
+            
+
+def reducer(mapDataIn):            
+    out = {}
+    for word in mapDataIn:
+        if word[0] in out.keys():
+            out[word[0]]= [out[word[0]][0]+ word[1], out[word[0]][1]+ word[2], out[word[0]][2]+ word[3]]
+        else:
+            out[word[0]]= [word[1],word[2],word[3]]
+        print(out)
+    print("\n")
+    return out
+
+
+# Add results from reducer together assuming confidence and lift is 
+# wanted across both stores for the association relationship.
+def reducerCols(reduceCol1, reduceCol2):
+    out = reduceCol1
+    for key, value in reduceCol2.items():
+        if key in out.keys():
+            out[key]=[out[key][0]+ value[0], out[key][1]+ value[1], out[key][2]+ value[2]]
+        else:
+            out[key]=[value[0], value[1], value[2]]
+    return out
+
+
+result1 = list(amazoncol.find({}))
+result2 = list(ebaycol.find({}))
+mapRes1 = mapper(result1)
+mapRes2 = mapper(result2)
+
+reduceCol1 = reducer(mapRes1)
+reduceCol2 = reducer(mapRes2)
+
+out = reducerCols(reduceCol1, reduceCol2)
+
+group = {'$group': {'_id': 0, 'total': {'$sum': 1}}}
+totalAmazon = list(amazoncol.aggregate([group]))
+
+group = {'$group': {'_id': 0, 'total': {'$sum': 1}}}
+totalEbay = list(ebaycol.aggregate([group]))
+
+totalDocs = totalEbay[0]['total'] + totalAmazon[0]['total']
+
+# out['item'][1]
+
+conf = out['item'][2] / out['item'][0]
+print("Confidence 22113 => 22112: ",conf)
+
+lift = out['item'][2]/ (out['item'][0]* out['item'][1])
+print("Lift 22113 => 22112: ", lift)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
