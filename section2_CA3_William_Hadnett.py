@@ -84,6 +84,10 @@ print(lift)
 
 # The above support, confidence and lift will act as a bench mark to ensure that the 
 # calculates for the top ten are carried out correctly. 
+
+# This funciton is more general and can be applied to the top 10 as well as the
+# entire database. However, please note that processing the entire database
+# may take some time. 
 def calculateAssoication(mongoResponse):
     
     pairs = findPairs(mongoResponse)

@@ -157,11 +157,6 @@ print(averages)
 # Question 4 - The standard deviation in the basket price by gender of customers.
 # =============================================================================
 
-# Approach Taken From: https://gist.github.com/RedBeard0531/1886960
-# This approch was written in javascript and only found the standard dev
-# of a complete dataset. Therefore, modifications had to be made to convert
-# the approach found into Python and then group the data by gender.
-
 def mapper(collIn):
     for doc in collIn:
         total = 0
@@ -195,7 +190,9 @@ def reducer(mapDataIn):
             currentMean = mean[0]
         else:
             currentMean = mean[1]
-            
+        
+        # Find delta squared which can then be used later to work variance
+        # and from there standard deviation. 
         delta = word[1] - currentMean
         deltaSq = delta * delta
             
@@ -251,24 +248,25 @@ for key, value in out.items():
 # Question 5 - The confidence and lift measures for the association rule Code 22113 => 22112
 # =============================================================================
 
-# item 1: count, item 2: count, item1&item: count
-def mapper(collIn):
+def mapper(collIn, item1, item2):
     for doc in collIn:
         countItem1 = countItem2 = False
         for x in doc['Basket']:
-            if x['StockCode'] == '22113':
+            if x['StockCode'] == item1:
                 countItem1 = True
-            if x['StockCode'] == '22112':
+            if x['StockCode'] == item2:
                 countItem2 = True
-            
-        if countItem1 and not countItem2:
-            yield ('item', 1, 0, 0)
-        if countItem2 and not countItem1:
-            yield ('item', 0, 1, 0)
+        # Create a 'matrix' that can be processed in the reducer to discover
+        # how many times an item appeared by itself or together. 
         if countItem2 and countItem1:
-            yield ('item', 1, 1, 1)
+            yield ('items', 1, 1, 1)
+        elif countItem1:
+            yield ('items', 1, 0, 0)
+        elif countItem2:
+            yield ('items', 0, 1, 0)
+        
             
-
+#{'item': [29, 44, 15]}
 def reducer(mapDataIn):            
     out = {}
     for word in mapDataIn:
@@ -276,6 +274,7 @@ def reducer(mapDataIn):
             out[word[0]]= [out[word[0]][0]+ word[1], out[word[0]][1]+ word[2], out[word[0]][2]+ word[3]]
         else:
             out[word[0]]= [word[1],word[2],word[3]]
+    print(out)
     return out
 
 
@@ -293,8 +292,8 @@ def reducerCols(reduceCol1, reduceCol2):
 
 result1 = list(amazoncol.find({}))
 result2 = list(ebaycol.find({}))
-mapRes1 = mapper(result1)
-mapRes2 = mapper(result2)
+mapRes1 = mapper(result1, '22113', '22112')
+mapRes2 = mapper(result2, '22113', '22112')
 
 reduceCol1 = reducer(mapRes1)
 reduceCol2 = reducer(mapRes2)
@@ -309,9 +308,9 @@ totalEbay = list(ebaycol.aggregate([group]))
 
 totalDocs = totalEbay[0]['total'] + totalAmazon[0]['total']
 
-supportItem1 = out['item'][0] / totalDocs
-supportItem2 = out['item'][1] / totalDocs
-supportBoth = out['item'][2] / totalDocs
+supportItem1 = out['items'][0] / totalDocs
+supportItem2 = out['items'][1] / totalDocs
+supportBoth = out['items'][2] / totalDocs
 
 conf = supportBoth / supportItem1
 print("Confidence 22113 => 22112: ",conf)

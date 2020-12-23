@@ -73,6 +73,10 @@ print(result)
 # Customer Analysis - Number of Visits by Age
 # =============================================================================
 
+# Discovered how to produce age bins via research on stack overflow:
+# https://stackoverflow.com/questions/42435584/group-by-age-groups-in-mongo-db
+# has been adapted to suit my needs.
+    
 # Find unique customer visits by age, along with max and min age.
 ageRanges = {'$group':{'_id':1, 'totalCustomers':{'$sum':1}, 
                     'Under40': {'$sum':{ "$cond": [ { "$lt": [ "$Age", 40 ] }, 1, 0] }},
@@ -87,7 +91,7 @@ group2 = ageRanges
 result = list(shopcol.aggregate([group, group2]))
 print(result)
 
-# [{'_id': 1, 'totalCustomers': 1115, 'Under40': 900, 'Between40and60': 161, 'Over60': 54}]
+# [{'_id': 1, 'totalCustomers': 1115, 'Under40': 900, 'Between40and60': 161, 'Over60': 54, 'MaxAge': 80, 'MinAge': 18}]
 
 # To compare number of visits by age the ages have been seperated into three 
 # groups. Customers under 40, customers between the age of 40 and 60 (inclusive)
@@ -100,7 +104,7 @@ group2 = {'$group': {'_id': 1, 'Between20and30': { "$sum": {"$cond": [ { "$and":
 result = list(shopcol.aggregate([group, group2]))
 print(result)
 # [{'_id': 1, 'Between20and30': 685}]
-# 685 / 1115 = 61.43%
+# (685 / 1115) * 100 = 61.43%
 
 # It appears that the majority of the visits to this website are made by people
 # between the ages of 20 and 30 (inclusive). This age range accounts for 61.43% 
@@ -119,12 +123,12 @@ totalItems = list(shopcol.aggregate([unwind,group]))
 print(totalItems)
 # [{'_id': 1, 'total': 513464}]
 
-# Total items purchased by Females.
+# Total items purchased by Males and Females.
 unwind = {'$unwind':'$Basket'}
 group = {'$group': {'_id': '$Customer.Gender', 'total':{'$sum':'$Basket.Quantity'}}}
 totalItems = list(shopcol.aggregate([unwind, group]))
 print(totalItems)
-# [{'_id': 'Male', 'total': 153181}, {'_id': 'Female', 'total': 360283}]
+# [{'_id': 'Female', 'total': 360283}, {'_id': 'Male', 'total': 153181}]
 
 # The above Analysis shows the total number of items bought by gender. It is 
 # clear that Females bought more items than Males (over twice as much). Males
@@ -194,44 +198,38 @@ print(result)
 # Customer Analysis - Value of Items Purchased by Age
 # =============================================================================
 
-# Average value and total value across the three age groups.
+# Average value across the three age groups.
 unwind = {'$unwind':'$Basket'}
-group = {'$group':{'_id': 1,'totalItemsPurchased':{'$sum':'$Basket.UnitPrice'}, 
-                    'AvgValueUnder40': {'$avg':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.UnitPrice', 0] }},
-                    'TotalValueUnder40': {'$sum':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.UnitPrice', 0] }},
-                    'AvgValueBetween40and60': { "$avg": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.UnitPrice', 0] }},
-                    'TotalValueBetween40and60': { "$sum": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.UnitPrice', 0] }},
-                    'AvgValueOver60': {'$avg': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.UnitPrice', 0] }},
-                    'TotalValueOver60': {'$sum': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.UnitPrice', 0] }}
+group = {'$group':{'_id': 1,'totalValue':{'$sum':'$Basket.UnitPrice'}, 
+                    'AvgValueUnder40': {'$avg':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.UnitPrice', '$$REMOVE'] }},
+                    'AvgValueBetween40and60': { "$avg": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.UnitPrice', '$$REMOVE'] }},
+                    'AvgValueOver60': {'$avg': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.UnitPrice', '$$REMOVE'] }}
                     }}
 result = list(shopcol.aggregate([unwind,group]))
 print(result)
-# [{'_id': 1, 'totalItemsPurchased': 123641.16, 
-# 'AvgValueUnder40': 2.5678456049945497, 'TotalValueUnder40': 103648.52, 
-# 'AvgValueBetween40and60': 0.3880735308690913, 'TotalValueBetween40and60': 15664.2, 
-#'AvgValueOver60': 0.1072351600436032, 'TotalValueOver60': 4328.44}]
+# [{'_id': 1, 'totalValue': 123641.16, 'TotalValueUnder40': 3.0566669615736237, 
+# 'TotalValueBetween40and60': 3.0666014095536416, 'TotalValueOver60': 3.2133927245731253}]
 
-# The average value is similiar across the three age ranges outlined above. 
-# However, it can be noted that visitors in the over 60s age group have a slightly
-# higher average value. Visitors under 40 and between 40 and 60 only have a 0.1
-# difference in their average value.
+# After reviewing the average value for each age group it is clear that the over 
+# 60's have a large average value. 
 
-# Find total number of documents for visitors less than 40 years old or greater than 60 years old.
-group = {'$group': {'_id': '$Customer.ID', 'Age': {'$max': "$Customer.Age"}}}
-group2 = {'$group': {'_id': 1,
-                     'TotalUnder40': {'$sum':{ "$cond": [ { "$lt": [ "$Age", 40 ] }, 1, 0] }},
-                     'TotalOver60': {'$sum':{ "$cond": [ { "$gt": [ "$Age", 60 ] }, 1, 0] }},
-                     }}
-result = list(shopcol.aggregate([unwind,group,group2]))
+unwind = {'$unwind':'$Basket'}
+group = {'$group':{'_id': 1,'totalValue':{'$sum':'$Basket.UnitPrice'}, 
+                    'maxValueUnder40': {'$max':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.UnitPrice', '$$REMOVE'] }},
+                    'maxValueBetween40and60': { "$max": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.UnitPrice', '$$REMOVE'] }},
+                    'maxValueOver60': {'$max': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.UnitPrice', '$$REMOVE'] }},
+                    'minValueUnder40': {'$min':{ "$cond": [ { "$lt": [ "$Customer.Age", 40 ] }, '$Basket.UnitPrice', '$$REMOVE'] }},
+                    'minValueBetween40and60': { "$min": {"$cond": [ { "$and": [ { "$gte":  ["$Customer.Age", 40 ] }, { "$lte": ["$Customer.Age", 60] } ]}, '$Basket.UnitPrice', '$$REMOVE'] }},
+                    'minValueOver60': {'$min': { "$cond": [ { "$gt": [ "$Customer.Age", 60 ] }, '$Basket.UnitPrice', '$$REMOVE'] }}
+                    }}
+result = list(shopcol.aggregate([unwind,group]))
 print(result)
-# [{'_id': 1, 'TotalUnder40': 900, 'TotalOver60': 54}]
+# [{'_id': 1, 'totalValue': 123641.16, 'maxValueUnder40': 295, 
+# 'maxValueBetween40and60': 175, 'maxValueOver60': 165, 'minValueUnder40': 0.07, 
+# 'minValueBetween40and60': 0.12, 'minValueOver60': 0.14}]
 
-# After reviewing the totalValue for each age group it is clear that the under
-# 40s have a larger total value. However, this does not match the average 
-# value identified ealier in this section. This may be partily due to the sample
-# size as we know that when sample size increases the STD decreases and vice versa.
-# The average for the under 40s is also more precise due to the 'Law of Large 
-# Numbers'. 
+# Customers under 40 appear to have a higher max value than the other two age groups.
+# However, the same age group also have the lowest min value.
 
 # =============================================================================
 # Customer Analysis - Total Spend by Gender
@@ -239,7 +237,6 @@ print(result)
 
 # Find the total spend of female and male visitors.
 unwind = {'$unwind':'$Basket'}
-match = {'$match':{'': 'Female'}}
 group={'$group': {'_id': '$Customer.Gender',  'totalSpend': {'$sum': { '$multiply': [ '$Basket.UnitPrice', '$Basket.Quantity' ]}}}}
 totalSpend = list(shopcol.aggregate([unwind,group]))
 print(totalSpend)
@@ -253,7 +250,7 @@ print(avgSpend)
 # [{'_id': 'Male', 'avgSpend': 22.7888978969337}, {'_id': 'Female', 'avgSpend': 23.05404859170071}]
 
 # Female visitors clearly spent more than male visitors on this website. Females
-# spend a total of 643346.28 while males only spend a total of 283904.09. 
+# spend a total of 643346.28 while males only spent a total of 283904.09. 
 
 # =============================================================================
 # Customer Analysis - Total Spend by Age
@@ -307,16 +304,14 @@ print(avgSpend)
 # Find total number of repeating customers.
 group = {'$group': {'_id': '$Customer.ID', 'NumberVisits': {'$sum': 1}}}
 group2 = {'$group': {'_id': 1, 'TotalRepeatingCustomers': {'$sum':{ "$cond": [ { "$gt": [ "$NumberVisits", 1 ] }, 1, 0]}}}}
-result = list(shopcol.aggregate([group,group2]))
+project = {'$project': {'_id': 1, 'TotalRepeatingCustomers': 1, "Percent": {'$multiply': [{'$divide': ['$TotalRepeatingCustomers',2000]}, 100]}}}
+result = list(shopcol.aggregate([group,group2,project]))
 print(result)
-#[{'_id': 0, 'TotalRepeatingCustomers': 389}]
+#[{'_id': 1, 'TotalRepeatingCustomers': 389, 'Percent': 19.45}]
 
-# Find average number of revisits
-group = {'$group': {'_id': '$Customer.ID', 'NumberVisits': {'$sum': 1}}}
-group2 = {'$group': {'_id': 0, 'AverageNumberofRevisits': {'$avg': "$NumberVisits"}}}
-result = list(shopcol.aggregate([group,group2]))
-print(result)
-# [{'_id': 0, 'TotalRepeatingCustomers': 1.7937219730941705}]
+# 389 visitors revisited the site this accounts for 19.45%
+# these repeating customers account for 19.45% of the sites 
+# visits.
 
 # Find repeating customers by gender
 group = {'$group': {'_id': '$Customer.ID', 'NumberVisits': {'$sum': 1}, 'Gender': {'$max': "$Customer.Gender"}}}
@@ -368,8 +363,17 @@ total spend and value by gender and age. However, what may be more useful to a
 business such as the one hosting this website is the customer profile and 
 demographic that the above analysis identifies and builds. Through the above analysis 
 I could now inform this business that their target audience is females aged 20 to 40
-and that over three months this demographic is likely to spend up to 80k via their 
-website. This business can then create a strategy based of this information to target 
+from the United Kingdom and that visitors under 40 generate appoximately 80k in sales
+over the course of three months. 
+
+I can also inform them that the three countries that use their site the least are 
+Cyprus, Poland and the Channel Islands. 
+
+The retention/revist rate has also been identified and this can be used to make
+assumptions about customer loyalty, satisfaction and the expenditure regarding the
+acquisition of new customers.
+
+This business can then create a strategy based of this information to target 
 this demographic. Alternatively a strategy could be created to increase catchment
 of males under 40 or both males and females over 40 etc. However, that is a business
 decision based on the direction of the company. 
