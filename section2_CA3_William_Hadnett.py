@@ -72,9 +72,9 @@ print(support21212)
 # 0.056
 
 #Life(85123A -> 21212) = supp(85123A and 21212)/ supp(85123A) * supp(21212)
-lift = (supportBoth / support85123A) * support21212
+lift = supportBoth / (support85123A * support21212)
 print(lift)
-# Lift: 0.003843137254901961
+# Lift: 1.2254901960784315
 # So the support for 21212 is 0.004% more likely to bough if the basket contains
 # product 85123A than in general.
 
@@ -84,7 +84,7 @@ print(lift)
 
 # The above support, confidence and lift will act as a bench mark to ensure that the 
 # calculates for the top ten are carried out correctly. 
-def findAssoication(mongoResponse):
+def calculateAssoication(mongoResponse):
     
     pairs = findPairs(mongoResponse)
     
@@ -94,31 +94,28 @@ def findAssoication(mongoResponse):
     for i in pairs:
         # Support(x) =  # of transactions in which x appears/total transactions
         query =  {'Basket.StockCode': i[0]['_id']}
-        supportItem1 = shopcol.count_documents(query) / totalDocs[0]['total']
-        print('Support for Item ',i[0]['_id'],': ',supportItem1)
+        supportItem1 = i[0]['count'] / totalDocs[0]['total']
 
         query =  {'Basket.StockCode': {'$all': [i[0]['_id'], i[1]['_id']]}}
         supportBoth = shopcol.count_documents(query) / totalDocs[0]['total']
-        print('Support Both: ',supportBoth)
         
         #Confidence that Item 1 will be bought when Item 2 is bought.
         #Conf(Item 1 -> Item 2) = supp(Item 1 and Item 2)/ supp(Item 1)
-        
-        conf = supportBoth / supportItem1
-        print('Confidence: ',conf)
-        # conf: 0.06862745098039216
          
         # Lift 
         query =  {'Basket.StockCode': i[1]['_id']}
-        supportItem2 = shopcol.count_documents(query) / totalDocs[0]['total']
-        print('Support Item ',i[1]['_id'],': ',supportItem2)
-        # 0.056
+        supportItem2 =  i[1]['count'] / totalDocs[0]['total']
+        
+        conf = supportBoth / supportItem1
+        # The only metric that changes in regards to the inverse association 
+        # appears to be confidence as number of appearances remains the same for both 
+        # items individually and together in the same basket. This metric can be 
+        # gathered to display the inverse realtionship to the reader.
+        inverseConf = supportBoth /supportItem2
         
         #Lift(Item 1 -> Item 2) = supp(Item 1 and Item 2)/ supp(Item1) * supp(Item2)
         lift = supportBoth / (supportItem1 * supportItem2)
-        print('Lift ',i[0]['_id'],' -> ',i[1]['_id'],': ',lift)
-        
-        print("\n")
+        displayAssoication(supportItem1, supportBoth, supportItem2, conf, inverseConf, lift, i)
 
 
 def findPairs(mongoResponse):
@@ -128,7 +125,22 @@ def findPairs(mongoResponse):
     return pairs
 
 
-findAssoication(top10)
+def displayAssoication(support1, supportBoth, support2, conf, inverseConf, lift, i):
+    
+    print('Support for Item ',i[0]['_id'],': ',support1)
+    print('Support Both: ',supportBoth)
+    print('Support Item ',i[1]['_id'],': ',support2)
+    print('Confidence: ',conf)
+    print('Lift ',i[0]['_id'],' -> ',i[1]['_id'],': ',lift)
+    
+    print('\nSupport Item ',i[1]['_id'],': ',support2)
+    print('Support Both: ',supportBoth)
+    print('Support for Item ',i[0]['_id'],': ',support1)
+    print('Confidence: ',inverseConf)
+    print('Lift ',i[1]['_id'],' -> ',i[0]['_id'],': ',lift)
+    print("\n")
+
+calculateAssoication(top10)
 
 
 
