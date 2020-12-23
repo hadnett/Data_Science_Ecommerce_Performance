@@ -248,6 +248,7 @@ for key, value in out.items():
 # Question 5 - The confidence and lift measures for the association rule Code 22113 => 22112
 # =============================================================================
 
+# Function can be used to compare any two products for association.
 def mapper(collIn, item1, item2):
     for doc in collIn:
         countItem1 = countItem2 = False
@@ -256,8 +257,8 @@ def mapper(collIn, item1, item2):
                 countItem1 = True
             if x['StockCode'] == item2:
                 countItem2 = True
-        # Create a 'matrix' that can be processed in the reducer to discover
-        # how many times an item appeared by itself or together. 
+        # Create a 'matrix' like structure that can be processed in the 
+        # reducer to discover how many times an item appeared by itself or together. 
         if countItem2 and countItem1:
             yield ('items', 1, 1, 1)
         elif countItem1:

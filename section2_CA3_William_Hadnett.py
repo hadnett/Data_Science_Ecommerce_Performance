@@ -122,6 +122,8 @@ def calculateAssoication(mongoResponse):
         displayAssoication(supportItem1, supportBoth, supportItem2, conf, inverseConf, lift, i)
 
 
+# Converting to a list of tuples using iterator
+# https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples
 def findPairs(mongoResponse):
     it = iter(mongoResponse)
     pairs = list(zip(it, it))
