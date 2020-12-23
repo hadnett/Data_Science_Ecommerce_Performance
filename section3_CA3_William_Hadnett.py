@@ -169,28 +169,57 @@ def mapper(collIn):
             total += x['Quantity']* x['UnitPrice']
         yield (doc['Customer']['Gender'], total,  1, 0)
         
-
-def reducer(mapDataIn):            
-    out = {}
-    for word in mapDataIn:
-        if word[0] in out.keys():
-            delta = out[word[0]][0]/out[word[0]][1] - word[1]/word[2]
-            weight = (out[word[0]][1] * word[2])/(out[word[0]][1] + word[2])
-            
-            out[word[0]]=[out[word[0]][0]+ word[1], out[word[0]][1]+ word[2], (delta*delta*weight)]
+        
+def findMean(dataList):
+    maleTotal = 0
+    maleCount = 0
+    femaleTotal = 0
+    femaleCount = 0
+    for i in dataList:
+        if i[0] == 'Male':
+            maleTotal += i[1]
+            maleCount += 1
         else:
-            out[word[0]]= [word[1],word[2]]
+            femaleTotal += i[1]
+            femaleCount += 1
+    
+    mean = (maleTotal/maleCount, femaleTotal/femaleCount)
+    return mean
+
+def reducer(mapDataIn):
+    listMapData = list(mapDataIn)   
+    mean = findMean(listMapData)  
+    out = {}
+    for word in listMapData:
+        if word[0] == 'Male':
+            currentMean = mean[0]
+        else:
+            currentMean = mean[1]
             
+        delta = word[1] - currentMean
+        deltaSq = delta * delta
+            
+        if word[0] in out.keys():
+            print(deltaSq)
+            out[word[0]]=[out[word[0]][0]+ word[1], out[word[0]][1]+ word[2], out[word[0]][2]+ deltaSq]
+        else:
+            out[word[0]]= [word[1],word[2], 0]
+        print(out)
     return out
 
 
 def reducerCols(reduceCol1, reduceCol2):
     out = reduceCol1
+    total = 0
     for key, value in reduceCol2.items():
         if key in out.keys():
+            print(out[key][2]+ value[2])
+            total = out[key][2]+ value[2]
+            print(total)
             out[key]=[out[key][0]+ value[0], out[key][1]+ value[1], out[key][2]+ value[2]]
         else:
             out[key]=[value[0], value[1], value[2]]
+        print(out)
     return out
 
 
