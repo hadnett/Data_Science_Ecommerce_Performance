@@ -248,7 +248,7 @@ for key, value in out.items():
 # Question 5 - The confidence and lift measures for the association rule Code 22113 => 22112
 # =============================================================================
 
-# Function can be used to compare any two products for association.
+# Function can be used to map any two products for association.
 def mapper(collIn, item1, item2):
     for doc in collIn:
         countItem1 = countItem2 = False
@@ -301,6 +301,7 @@ reduceCol2 = reducer(mapRes2)
 
 out = reducerCols(reduceCol1, reduceCol2)
 
+# Find total number documents across two collections
 group = {'$group': {'_id': 0, 'total': {'$sum': 1}}}
 totalAmazon = list(amazoncol.aggregate([group]))
 
@@ -309,6 +310,7 @@ totalEbay = list(ebaycol.aggregate([group]))
 
 totalDocs = totalEbay[0]['total'] + totalAmazon[0]['total']
 
+# Find Support for items seperate and together.
 supportItem1 = out['items'][0] / totalDocs
 supportItem2 = out['items'][1] / totalDocs
 supportBoth = out['items'][2] / totalDocs
