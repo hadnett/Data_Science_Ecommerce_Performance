@@ -258,7 +258,7 @@ def mapper(collIn, item1, item2):
             if x['StockCode'] == item2:
                 countItem2 = True
         # Create a 'matrix' like structure that can be processed in the 
-        # reducer to discover how many times an item appeared by itself or together. 
+        # reducer to discover how many times an item appeared by itself or together.
         if countItem2 and countItem1:
             yield ('items', 1, 1, 1)
         elif countItem1:

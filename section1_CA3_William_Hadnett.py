@@ -352,7 +352,6 @@ print(result)
 # therefore the business could decided to promote their products in these locations 
 # to promote reach and encourage engagement from these countries.
 
-
 # =============================================================================
 # Customer Analysis - Summary
 # ============================================================================= 
@@ -363,13 +362,13 @@ total spend and value by gender and age. However, what may be more useful to a
 business such as the one hosting this website is the customer profile and 
 demographic that the above analysis identifies and builds. Through the above analysis 
 I could now inform this business that their target audience is females aged 20 to 40
-from the United Kingdom and that visitors under 40 generate appoximately 80k in sales
+from the United Kingdom and that visitors under 40 generate approximately 80k in sales
 over the course of three months. 
 
 I can also inform them that the three countries that use their site the least are 
 Cyprus, Poland and the Channel Islands. 
 
-The retention/revist rate has also been identified and this can be used to make
+The retention/revisit rate has also been identified and this can be used to make
 assumptions about customer loyalty, satisfaction and the expenditure regarding the
 acquisition of new customers.
 
