@@ -68,8 +68,10 @@ out = reducerCols(reduceCol1, reduceCol2)
 
 def mapper(collIn):
     for doc in collIn:
+        total = 0
         for x in doc['Basket']:
-            yield ('total', x['Quantity']* x['UnitPrice'])
+            total += (x['Quantity']* x['UnitPrice'])
+        yield ('total', total)
 
 def reducer(mapDataIn):
     maxBasket = 0
@@ -99,7 +101,7 @@ reduceCol2 = reducer(mapRes2)
 
 out = reducerCols(reduceCol1, reduceCol2)
 # Max Total Basket Price Across Both Stores and Customers: 
-# {'MaxBasket': 6539.40}
+# {'MaxBasket': 15525.810000000007}
 
 # =============================================================================
 # Question 3 - The Average Number of Items Purchased by Nationality of Customers
@@ -162,8 +164,10 @@ print(averages)
 
 def mapper(collIn):
     for doc in collIn:
+        total = 0
         for x in doc['Basket']:
-            yield (doc['Customer']['Gender'], x['Quantity']* x['UnitPrice'],  1, 0)
+            total += x['Quantity']* x['UnitPrice']
+        yield (doc['Customer']['Gender'], total,  1, 0)
         
 
 def reducer(mapDataIn):            
@@ -213,5 +217,14 @@ for key, value in out.items():
 
 # Female baskets will have less spread than male baskets as the standard deviation is lower.
 # Variance shows that the female baskets are closer to the mean than male baskets.
+
+# =============================================================================
+# Question 5 - The confidence and lift measures for the association rule Code 22113 => 22112
+# =============================================================================
+
+
+
+
+
 
 
