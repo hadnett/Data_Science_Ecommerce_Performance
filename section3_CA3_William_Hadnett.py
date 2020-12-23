@@ -212,8 +212,8 @@ for key, value in out.items():
     stddev = math.sqrt(variance)
     print(key, "Average: ", average, " Variance: ", variance, " stddev: ", stddev)
 
-# Male Average:  17.430399051758247  Variance:  0.31039880271467946  stddev:  0.5571344565853735
-# Female Average:  23.647031710914373  Variance:  0.05488990941869463  stddev:  0.2342859565118973
+# Male Average:  367.6361666666666  Variance:  439.1980948848039  stddev:  20.95705358309712
+# Female Average:  459.7186379928316  Variance:  206.28183353419018  stddev:  14.362514874985862
 
 # Female baskets will have less spread than male baskets as the standard deviation is lower.
 # Variance shows that the female baskets are closer to the mean than male baskets.
@@ -236,7 +236,7 @@ def mapper(collIn):
             yield ('item', 1, 0, 0)
         if countItem2 and not countItem1:
             yield ('item', 0, 1, 0)
-        if countItem2 and countItem1: # basket: 
+        if countItem2 and countItem1:
             yield ('item', 1, 1, 1)
             
 
@@ -247,8 +247,6 @@ def reducer(mapDataIn):
             out[word[0]]= [out[word[0]][0]+ word[1], out[word[0]][1]+ word[2], out[word[0]][2]+ word[3]]
         else:
             out[word[0]]= [word[1],word[2],word[3]]
-        print(out)
-    print("\n")
     return out
 
 
@@ -286,10 +284,11 @@ totalDocs = totalEbay[0]['total'] + totalAmazon[0]['total']
 
 conf = out['item'][2] / out['item'][0]
 print("Confidence 22113 => 22112: ",conf)
+# Confidence 22113 => 22112:  0.5172413793103449
 
 lift = out['item'][2]/ (out['item'][0]* out['item'][1])
 print("Lift 22113 => 22112: ", lift)
-
+# Lift 22113 => 22112:  0.011755485893416929
 
 
 
